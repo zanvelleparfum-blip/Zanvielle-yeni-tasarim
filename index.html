@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f5f1">
+<title>ZANVIELLE — 3D Fragrance Experience</title>
+<style>
+:root{--bg:#f6f5f1;--ink:#111;--gold:#c19a4b;--line:#d8d5cd}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow-x:hidden;font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+body{touch-action:pan-y}canvas{position:fixed;inset:0;display:block;z-index:1}
+#intro{position:fixed;z-index:100;inset:0;background:#0d0d0c;color:#fff;display:grid;place-items:center;transition:opacity 1s,visibility 1s}
+#intro.hide{opacity:0;visibility:hidden;pointer-events:none}
+#introLogo{font-size:clamp(30px,8vw,82px);letter-spacing:.25em;transform:translateX(.125em);opacity:0;animation:intro 1.4s .25s cubic-bezier(.16,1,.3,1) forwards}
+#introRing{position:absolute;width:65vmin;height:65vmin;border:1px solid #fff2;border-radius:50%;animation:ring 2s cubic-bezier(.16,1,.3,1) forwards}
+#introSub{position:absolute;bottom:11%;font-size:8px;letter-spacing:.35em;color:#888;text-transform:uppercase}
+@keyframes intro{to{opacity:1;letter-spacing:.18em}}@keyframes ring{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+header{position:fixed;z-index:20;left:0;right:0;top:0;height:72px;padding:0 30px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.logo{font-size:13px;letter-spacing:.42em;font-weight:600;pointer-events:auto}
+nav{display:flex;gap:22px;pointer-events:auto}button{border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+nav button{font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+#progress{position:fixed;z-index:25;top:0;left:0;width:0;height:2px;background:var(--gold)}
+#counter{position:fixed;z-index:20;right:28px;bottom:24px;font-size:9px;letter-spacing:.2em;color:#777}
+#ui{position:fixed;z-index:15;inset:0;pointer-events:none}
+.chapter{position:absolute;left:4.8vw;top:20vh;font-size:9px;letter-spacing:.28em;color:#777;text-transform:uppercase}
+.chapter b{color:#111;margin-left:12px}
+.rightInfo{position:absolute;right:5vw;top:29%;text-align:right}
+.rightInfo strong{display:block;margin-top:8px;font-size:15px;letter-spacing:.18em}
+.type{position:absolute;right:5vw;bottom:15%;text-align:right}
+.type strong{display:block;margin-top:7px;font:400 27px Georgia,serif}
+.copy{position:absolute;left:4.8vw;bottom:10vh;max-width:390px}
+.copy .k{font-size:9px;letter-spacing:.35em;color:#777}
+.copy h1{font:400 clamp(56px,8vw,115px)/.78 Georgia,serif;letter-spacing:-.065em;margin:14px 0 20px}
+.copy p{font-size:11px;line-height:1.8;letter-spacing:.07em;text-transform:uppercase;color:#777;max-width:330px}
+.word{position:absolute;left:50%;top:52%;font:300 clamp(90px,18vw,275px)/.7 Arial,sans-serif;letter-spacing:-.09em;white-space:nowrap;transform:translate(-50%,-50%);opacity:.9}
+#toolbar{position:absolute;top:88px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:6px;background:#ffffffdd;border:1px solid #dedbd3;backdrop-filter:blur(10px);pointer-events:auto}
+#toolbar button{font-size:7px;letter-spacing:.14em;text-transform:uppercase;padding:8px 10px;border:1px solid #d7d3ca}
+#toolbar button.active{border-color:var(--gold);color:#876426}
+#tip{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);font-size:8px;letter-spacing:.27em;color:#777;text-transform:uppercase;white-space:nowrap}
+#panel{position:fixed;z-index:40;right:20px;top:50%;width:min(330px,calc(100vw - 40px));padding:22px;background:#111;color:#eee;transform:translate(120%,-50%);transition:transform .6s cubic-bezier(.16,1,.3,1);pointer-events:auto}
+#panel.open{transform:translateY(-50%)}#panel .close{position:absolute;right:14px;top:10px;color:#aaa;font-size:20px}
+#panel .small{font-size:8px;letter-spacing:.25em;color:var(--gold);text-transform:uppercase}
+#panel h2{font:400 29px Georgia,serif;margin:17px 0 10px}#panel p{font-size:10px;line-height:1.8;color:#aaa}
+.story{position:relative;z-index:5;min-height:100vh;padding:18vh 8vw;display:flex;align-items:center;overflow:hidden}
+.story.light{background:#f6f5f1}.story.dark{background:#111;color:#eee}
+.storyInner{max-width:650px}.storyK{font-size:9px;letter-spacing:.35em;color:var(--gold);margin-bottom:24px}.story h2{font:400 clamp(55px,9vw,120px)/.84 Georgia,serif;letter-spacing:-.06em;margin:0 0 28px}.story p{font-size:13px;line-height:1.9;color:#777;max-width:440px}.dark p{color:#999}
+.notesWord{position:absolute;right:-4vw;top:45%;transform:translateY(-50%);font:400 clamp(110px,22vw,320px)/.7 Georgia,serif;opacity:.035;white-space:nowrap}
+.pills{display:flex;flex-wrap:wrap;gap:9px;margin-top:28px}.pill{padding:11px 14px;border:1px solid #c8c4ba;font-size:8px;letter-spacing:.18em}
+.dark .pill{border-color:#3a3834}
+.collection{position:relative;z-index:5;background:#0d0d0c;color:#eee;padding:15vh 5vw;min-height:100vh}.collection h2{font:400 clamp(55px,9vw,120px)/.82 Georgia,serif;letter-spacing:-.06em;margin:0}.collectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:45px}.collectionHead span{font-size:8px;letter-spacing:.25em;color:#777}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.card{min-height:290px;border:1px solid #282824;padding:18px;display:flex;flex-direction:column;justify-content:flex-end}.card small{font-size:8px;letter-spacing:.2em;color:#777}.card h3{font:400 27px Georgia,serif;margin:8px 0 0}
+footer{position:relative;z-index:5;background:#080807;color:#777;padding:45px 5vw;display:flex;justify-content:space-between;font-size:8px;letter-spacing:.2em}
+@media(max-width:700px){header{height:60px;padding:0 18px}.logo{font-size:11px}.chapter{left:18px;top:19%}.rightInfo{right:18px;top:27%}.type{right:18px;bottom:18%}.type strong{font-size:18px}.copy{left:18px;bottom:10vh;max-width:270px}.copy h1{font-size:53px}.copy p{font-size:9px;max-width:250px}.word{font-size:25vw}.toolbar{}.collection{padding:15vh 18px}.collectionHead{display:block}.collectionHead span{display:block;margin-top:20px}.cards{grid-template-columns:1fr 1fr}.card{min-height:240px}.story{padding:23vh 22px 15vh}.notesWord{font-size:100px;top:27%}footer{display:block;line-height:2.2}}
+</style>
+</head>
+<body>
+<div id="intro"><div id="introRing"></div><div id="introLogo">ZANVIELLE</div><div id="introSub">REAL-TIME 3D FRAGRANCE EXPERIENCE</div></div>
+<div id="progress"></div>
+<header><div class="logo">ZANVIELLE</div><nav><button id="menuBtn">MENU</button><button id="soundBtn">SOUND OFF</button></nav></header>
+<div id="ui">
+ <div class="chapter">EXPERIENCE <b id="chapter">THE SIGNATURE</b></div>
+ <div class="rightInfo"><div class="kicker">COLLECTION</div><strong id="collectionName">SIGNATURE</strong></div>
+ <div class="type"><div class="kicker">TYPE</div><strong id="typeName">EXTRAIT DE PARFUM</strong></div>
+ <div class="copy"><div class="k">ZANVIELLE · 001</div><h1 id="heroTitle">Kokunun<br>ötesinde.</h1><p id="heroText">Şişeyi sürükle. Döndür. Kapağa dokun. Atomizere bas. Ürünün her yüzünü keşfet.</p></div>
+ <div class="word" id="word">ZANVIELLE</div>
+ <div id="toolbar">
+   <button class="active" data-color="noir">NOIR</button><button data-color="gold">GOLD</button><button data-color="amber">AMBER</button><button data-color="crystal">CRYSTAL</button>
+   <button id="explodeBtn">EXPLODE</button><button id="resetBtn">RESET</button>
+ </div>
+ <div id="tip">DRAG · ROTATE · TAP CAP · PRESS ATOMIZER</div>
+</div>
+<div id="counter"><span id="num">01</span> / 06</div>
+<div id="panel"><button class="close" id="closePanel">×</button><div class="small" id="panelK">PRODUCT DETAIL</div><h2 id="panelTitle">Zanvielle</h2><p id="panelText"></p></div>
+
+<!-- The transparent 3D canvas sits behind the editorial UI. -->
+<div id="three"></div>
+
+<main>
+<section class="story light"><div class="storyInner"><div class="storyK">02 · ÜST NOTALAR</div><h2>İlk<br>dokunuş.</h2><p>Bergamot, mandalina ve narenciye ile açılan koku. Scroll ilerledikçe 3D ürünün kamera hareketi bu hikâyeye eşlik eder.</p><div class="pills"><span class="pill">BERGAMOT</span><span class="pill">MANDALİNA</span><span class="pill">NARENCİYE</span></div></div><div class="notesWord">TOP</div></section>
+<section class="story dark"><div class="storyInner"><div class="storyK">03 · KALP NOTALARI</div><h2>Kokunun<br>karakteri.</h2><p>Beyaz çiçekler ve pudramsı dokular. Tipografi ve ürün farklı hızlarda hareket ederek derinlik oluşturur.</p><div class="pills"><span class="pill">WHITE FLORALS</span><span class="pill">POWDER</span><span class="pill">SOFT</span></div></div><div class="notesWord">HEART</div></section>
+<section class="story light"><div class="storyInner"><div class="storyK">04 · ALT NOTALAR</div><h2>İz<br>bırakır.</h2><p>Vanilya, sandal ağacı ve amber ile uzun süre taşınan imza.</p><div class="pills"><span class="pill">VANİLYA</span><span class="pill">SANDAL AĞACI</span><span class="pill">AMBER</span></div></div><div class="notesWord">TRAIL</div></section>
+<section class="story dark"><div class="storyInner"><div class="storyK">05 · ZANVIELLE DNA</div><h2>Ultra<br>performans.</h2><p>Premium Extrait de Parfum. Yoğunluk, karakter ve performans aynı deneyimde.</p><div class="pills"><span class="pill">EXTRAIT</span><span class="pill">PREMIUM</span><span class="pill">LONG LASTING</span></div></div><div class="notesWord">DNA</div></section>
+<section class="collection"><div class="collectionHead"><h2>Kokunu<br>keşfet.</h2><span>06 · THE ZANVIELLE COLLECTION</span></div><div class="cards"><div class="card"><small>01 · WOMEN</small><h3>Kadın</h3></div><div class="card"><small>02 · MEN</small><h3>Erkek</h3></div><div class="card"><small>03 · UNISEX</small><h3>Unisex</h3></div><div class="card"><small>04 · BODY</small><h3>Losyonlar</h3></div><div class="card"><small>05 · GIFT</small><h3>Hediye Setleri</h3></div></div></section>
+</main>
+<footer><span>ZANVIELLE · PREMIUM EXTRAIT</span><span>INTERACTIVE FRAGRANCE EXPERIENCE</span></footer>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+import {RoundedBoxGeometry} from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/geometries/RoundedBoxGeometry.js";
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,innerWidth/innerHeight,.1,100);
+camera.position.set(0,0.2,7.5);
+
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+document.getElementById("three").appendChild(renderer.domElement);
+
+const root=new THREE.Group();scene.add(root);
+const bottleGroup=new THREE.Group();root.add(bottleGroup);
+const capGroup=new THREE.Group();root.add(capGroup);
+const atomGroup=new THREE.Group();root.add(atomGroup);
+const sprayGroup=new THREE.Group();root.add(sprayGroup);
+
+const mats={
+ noir:{glass:0x151515,liquid:0x20140a,metal:0xb58a38,label:0x15120d},
+ gold:{glass:0x29261e,liquid:0x7d4c0b,metal:0xd4a94f,label:0x231b0d},
+ amber:{glass:0x6b3512,liquid:0xb95d08,metal:0xc58c35,label:0x24160a},
+ crystal:{glass:0xd9d9d2,liquid:0xb47b1d,metal:0xddd9cf,label:0xefe9d7}
+};
+let current=mats.noir;
+
+function physical(color,rough=.32,metal=.15,trans=.0){
+ return new THREE.MeshPhysicalMaterial({color,roughness:rough,metalness:metal,transparent:trans>0,opacity:trans?0.72:1,transmission:trans,thickness:.35,ior:1.45,clearcoat:.55,clearcoatRoughness:.15});
+}
+const glassMat=physical(current.glass,.18,.12,.12);
+const liquidMat=physical(current.liquid,.2,.02,0);
+const metalMat=physical(current.metal,.18,.88,0);
+const darkMat=new THREE.MeshStandardMaterial({color:0x11110f,roughness:.32,metalness:.15});
+const goldMat=metalMat;
+const labelCanvas=document.createElement("canvas");labelCanvas.width=900;labelCanvas.height=500;
+const lc=labelCanvas.getContext("2d");
+lc.fillStyle="#17140f";lc.fillRect(0,0,900,500);
+lc.strokeStyle="#c19a4b";lc.lineWidth=5;lc.strokeRect(35,35,830,430);
+lc.textAlign="center";lc.fillStyle="#e5c57c";lc.font="500 86px Georgia";lc.fillText("ZANVIELLE",450,255);
+lc.font="28px Arial";lc.letterSpacing="12px";lc.fillText("EXTRAIT DE PARFUM",450,325);
+const labelTex=new THREE.CanvasTexture(labelCanvas);labelTex.colorSpace=THREE.SRGBColorSpace;
+const labelMat=new THREE.MeshStandardMaterial({map:labelTex,roughness:.38});
+
+const bottle=new THREE.Mesh(new RoundedBoxGeometry(2.25,3.25,.9,.22,8),glassMat);
+bottle.position.y=-.25;bottleGroup.add(bottle);
+
+const liquid=new THREE.Mesh(new RoundedBoxGeometry(2.02,2.42,.78,.16,8),liquidMat);
+liquid.position.set(0,-.62,.03);bottleGroup.add(liquid);
+
+const label=new THREE.Mesh(new THREE.PlaneGeometry(1.82,1.0),labelMat);
+label.position.set(0,-.15,.48);bottleGroup.add(label);
+
+const backLabel=label.clone();backLabel.rotation.y=Math.PI;backLabel.position.z=-.48;bottleGroup.add(backLabel);
+
+const shoulder=new THREE.Mesh(new THREE.CylinderGeometry(.48,.48,.28,48),metalMat);
+shoulder.position.y=1.52;capGroup.add(shoulder);
+
+const neck=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.38,48),metalMat);
+neck.position.y=1.82;capGroup.add(neck);
+
+const cap=new THREE.Mesh(new RoundedBoxGeometry(1.35,.86,.95,.12,7),metalMat);
+cap.position.y=2.39;capGroup.add(cap);
+
+const capTop=new THREE.Mesh(new THREE.CylinderGeometry(.56,.56,.05,48),metalMat);
+capTop.position.y=2.84;capGroup.add(capTop);
+
+const pump=new THREE.Mesh(new RoundedBoxGeometry(.38,.15,.32,.035,5),darkMat);
+pump.position.set(.08,1.98,.03);atomGroup.add(pump);
+const stem=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.34,20),metalMat);
+stem.position.y=1.78;atomGroup.add(stem);
+const collar=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.12,40),metalMat);
+collar.position.y=1.65;atomGroup.add(collar);
+const nozzle=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.3,16),darkMat);
+nozzle.rotation.z=Math.PI/2;nozzle.position.set(.26,2.0,.03);atomGroup.add(nozzle);
+
+capGroup.position.y=0;
+atomGroup.position.y=0;
+
+const floor=new THREE.Mesh(new THREE.CircleGeometry(2.5,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0}));
+floor.rotation.x=-Math.PI/2;floor.position.y=-1.95;scene.add(floor);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x55504a,2.3));
+const key=new THREE.DirectionalLight(0xffffff,4);key.position.set(4,6,7);scene.add(key);
+const rim=new THREE.DirectionalLight(0xffd995,2.4);rim.position.set(-5,3,-4);scene.add(rim);
+const fill=new THREE.PointLight(0xffffff,1.3,12);fill.position.set(0,1,4);scene.add(fill);
+
+let targetRotX=-.04,targetRotY=.15,rotX=-.04,rotY=.15;
+let capOpen=false,explode=false,drag=false,lastX=0,lastY=0;
+let scrollTarget=0,scroll=0,hoverX=0,hoverY=0;
+const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+const interactive=[cap,pump,nozzle,bottle,label];
+
+function setMaterials(){
+ const m=mats[mode];
+ glassMat.color.setHex(m.glass);liquidMat.color.setHex(m.liquid);metalMat.color.setHex(m.metal);
+ labelCanvas.style.background="#"+m.label.toString(16).padStart(6,"0");
+ lc.fillStyle="#"+m.label.toString(16).padStart(6,"0");lc.fillRect(0,0,900,500);
+ lc.strokeStyle="#e2bf70";lc.lineWidth=5;lc.strokeRect(35,35,830,430);
+ lc.fillStyle="#ead08e";lc.font="500 86px Georgia";lc.fillText("ZANVIELLE",450,255);
+ lc.font="28px Arial";lc.fillText("EXTRAIT DE PARFUM",450,325);labelTex.needsUpdate=true;
+}
+
+let mode="noir";
+document.querySelectorAll("[data-color]").forEach(btn=>btn.onclick=()=>{
+ document.querySelectorAll("[data-color]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+ mode=btn.dataset.color;setMaterials();
+});
+
+function setCap(open){
+ capOpen=open;
+ capGroup.position.y=open?1.05:0;
+ capGroup.rotation.z=open?-.035:0;
+ atomGroup.visible=open;
+}
+setCap(false);
+
+function setExplode(v){
+ explode=v;
+ document.getElementById("explodeBtn").textContent=v?"ASSEMBLE":"EXPLODE";
+ bottleGroup.position.y=v?-.28:0;
+ bottleGroup.position.z=v?.18:0;
+ capGroup.position.y=(capOpen?1.05:0)+(v?1.15:0);
+ atomGroup.position.y=(capOpen?v*.65:0);
+ label.position.z=v?.68:.48;
+ backLabel.position.z=v?-.68:-.48;
+}
+document.getElementById("explodeBtn").onclick=()=>setExplode(!explode);
+document.getElementById("resetBtn").onclick=()=>{rotX=-.04;rotY=.15;targetRotX=rotX;targetRotY=rotY;setCap(false);setExplode(false);scrollTarget=0;scrollTo({top:0,behavior:"smooth"})};
+
+document.getElementById("menuBtn").onclick=()=>document.querySelector(".collection").scrollIntoView({behavior:"smooth"});
+document.getElementById("soundBtn").onclick=e=>e.currentTarget.textContent=e.currentTarget.textContent==="SOUND OFF"?"SOUND ON":"SOUND OFF";
+
+function spray(){
+ if(!capOpen)return;
+ pump.position.y=1.92;
+ setTimeout(()=>pump.position.y=1.98,110);
+ for(let i=0;i<36;i++){
+  const g=new THREE.SphereGeometry(.018+Math.random()*.018,6,6);
+  const m=new THREE.MeshBasicMaterial({color:0xd7b66d,transparent:true,opacity:.65});
+  const q=new THREE.Mesh(g,m);q.position.set(.42,2.0,.05);q.userData={life:0,dx:.055+Math.random()*.055,dy:(Math.random()-.5)*.018,dz:(Math.random()-.5)*.012};sprayGroup.add(q);
+ }
+}
+atomGroup.traverse(o=>{o.userData.atom=true});
+document.getElementById("three").addEventListener("pointerdown",e=>{
+ const r=renderer.domElement.getBoundingClientRect();
+ mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+ raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects([cap,pump,nozzle,bottle,label],true);
+ if(hits.length){
+  const obj=hits[0].object;
+  if(obj===cap){setCap(!capOpen);return}
+  if((obj===pump||obj===nozzle)&&capOpen){spray();return}
+ }
+ drag=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.style.cursor="grabbing";
+});
+addEventListener("pointermove",e=>{
+ hoverX=e.clientX-innerWidth/2;hoverY=e.clientY-innerHeight/2;
+ if(drag){targetRotY+=(e.clientX-lastX)*.012;targetRotX+=(e.clientY-lastY)*.008;targetRotX=Math.max(-1.15,Math.min(1.15,targetRotX));lastX=e.clientX;lastY=e.clientY}
+});
+addEventListener("pointerup",()=>{drag=false;renderer.domElement.style.cursor="grab"});
+renderer.domElement.style.cursor="grab";
+
+addEventListener("scroll",()=>{
+ const max=Math.max(1,document.querySelector(".experience").offsetHeight-innerHeight);
+ scrollTarget=Math.max(0,Math.min(1,scrollY/max));
+});
+const scenesText=[
+["THE SIGNATURE","Kokunun<br>ötesinde.","Şişeyi sürükle. Döndür. Kapağa dokun. Atomizere bas. Ürünün her yüzünü keşfet.","SIGNATURE","EXTRAIT DE PARFUM"],
+["THE OPENING","İlk<br>dokunuş.","Üst notalar açılırken kapak ve atomizer sahneye çıkar.","TOP NOTES","OPENING"],
+["THE HEART","Kokunun<br>karakteri.","Kalp notalarıyla birlikte ürün ve tipografi farklı hızlarda hareket eder.","HEART","CHARACTER"],
+["THE TRAIL","İz<br>bırakır.","Alt notalara geçerken ürün yeni bir açıya döner.","BASE NOTES","LONG LASTING"],
+["THE DNA","ZANVIELLE<br>DNA.","Premium Extrait de Parfum. Yoğunluk, karakter ve performans.","EXTRAIT","PREMIUM"],
+["THE COLLECTION","Kokunu<br>keşfet.","Zanvielle dünyasını keşfet.","COLLECTION","ZANVIELLE"]
+];
+
+function animate(){
+ requestAnimationFrame(animate);
+ scroll+=(scrollTarget-scroll)*.065;
+ rotY+=(targetRotY-rotY)*.08;rotX+=(targetRotX-rotX)*.08;
+ const sceneIndex=Math.min(5,Math.floor(scroll*5)),s=scenesText[sceneIndex];
+ document.getElementById("num").textContent=String(sceneIndex+1).padStart(2,"0");
+ document.getElementById("progress").style.width=(scroll*100)+"%";
+ document.getElementById("chapter").textContent=s[0];document.getElementById("heroTitle").innerHTML=s[1];document.getElementById("heroText").textContent=s[2];
+ document.getElementById("collectionName").textContent=s[3];document.getElementById("typeName").textContent=s[4];
+
+ const wave=Math.sin(scroll*Math.PI*6),x=wave*(innerWidth<700?16:34),y=Math.sin(scroll*Math.PI*4)*.18;
+ root.rotation.x=rotX+Math.sin(scroll*8)*.025;root.rotation.y=rotY+Math.sin(scroll*5)*.045;
+ root.position.x=(x/120)+(hoverX*.00015);root.position.y=y+(hoverY*-.00008);
+ root.scale.setScalar(1+scroll*.18);
+
+ const autoOpen=Math.max(0,Math.sin((scroll-.10)*Math.PI*2))*.7;
+ if(!capOpen)setCap(autoOpen>.25);
+ const openNow=capOpen?1:autoOpen;
+ capGroup.position.y=(openNow*1.05)+(explode?1.15:0);
+ atomGroup.visible=openNow>.02;
+ atomGroup.position.y=(openNow*.05)+(explode?.65:0);
+
+ document.getElementById("word").style.transform=`translate(calc(-50% + ${-x*2.1}px),calc(-50% + ${Math.sin(scroll*12)*16}px)) rotate(${Math.sin(scroll*7)*2}deg)`;
+ document.getElementById("word").style.opacity=.76+Math.sin(scroll*9)*.08;
+
+ sprayGroup.children.forEach((q,i)=>{
+   q.userData.life+=.018;
+   q.position.x+=q.userData.dx;q.position.y+=q.userData.dy;q.position.z+=q.userData.dz;
+   q.material.opacity=Math.max(0,.7-q.userData.life);
+   if(q.userData.life>1){sprayGroup.remove(q);q.geometry.dispose();q.material.dispose()}
+ });
+ renderer.render(scene,camera);
+}
+animate();
+
+addEventListener("resize",()=>{
+ camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+});
+setTimeout(()=>document.getElementById("intro").classList.add("hide"),2500);
+</script>
+</body>
+</html>
