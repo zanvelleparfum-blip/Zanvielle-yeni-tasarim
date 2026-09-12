@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f3ef">
+<title>ZANVIELLE — Interactive Parfum Experience</title>
+<style>
+:root{
+  --bg:#f4f3ef;--ink:#111;--muted:#7f7f7c;--gold:#b99a58;--line:#d5d3ce;
+  --dark:#10100f;--cream:#ece9df;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:auto}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
+button,a{font:inherit;color:inherit}
+button{border:0;background:none}
+.page{position:relative}
+.nav{
+  position:fixed;z-index:50;left:0;right:0;top:0;height:74px;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;pointer-events:none;
+}
+.logo{font-size:13px;letter-spacing:.38em;font-weight:600;pointer-events:auto}
+.nav-right{display:flex;gap:24px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;pointer-events:auto}
+.nav-right button{cursor:pointer}
+.progress{position:fixed;z-index:60;left:0;top:0;width:0;height:2px;background:var(--gold)}
+.counter{position:fixed;z-index:50;right:26px;bottom:28px;font-size:9px;letter-spacing:.2em;color:#666}
+.experience{height:600vh}
+.pin{
+  position:sticky;top:0;height:100svh;min-height:650px;overflow:hidden;
+  background:var(--bg);
+}
+.grid{
+  position:absolute;inset:0;opacity:.5;
+  background:
+    linear-gradient(90deg,transparent 49.9%,var(--line) 50%,transparent 50.1%),
+    linear-gradient(0deg,transparent 49.9%,var(--line) 50%,transparent 50.1%);
+}
+.orbit{
+  position:absolute;left:50%;top:50%;width:min(145vw,1050px);height:min(145vw,1050px);
+  transform:translate(-50%,-50%);border:2px solid #4b4b49;border-radius:50%;
+}
+.orbit:before,.orbit:after{
+  content:"";position:absolute;inset:0;border-radius:50%;border:1px solid var(--line);
+}
+.orbit:before{transform:rotate(45deg) scale(.707);border-color:#d0cec7}
+.orbit:after{transform:rotate(-45deg) scale(.707);border-color:#dedbd2}
+.ring-cut{
+  position:absolute;left:50%;top:50%;width:min(100vw,720px);height:min(100vw,720px);
+  transform:translate(-50%,-50%);border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0 11%,rgba(255,255,255,.7) 11.2% 24%,transparent 24.2% 48%,rgba(255,255,255,.5) 48.2% 61%,transparent 61.2%);
+  mix-blend-mode:screen;opacity:.8;
+}
+.hero-word{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-size:clamp(72px,16vw,250px);font-weight:300;letter-spacing:-.08em;white-space:nowrap;
+  color:#171716;opacity:.97;line-height:.8;pointer-events:none;
+}
+.hero-word span{display:inline-block}
+.hero-word .z2{transform:translateX(-.05em)}
+.bottle-scene{
+  position:absolute;left:50%;top:50%;width:min(55vw,390px);height:min(72vh,610px);
+  transform:translate(-50%,-48%);z-index:4;transition:transform .06s linear;
+  cursor:grab;touch-action:none;
+}
+.bottle-scene.dragging{cursor:grabbing}
+.shadow{
+  position:absolute;left:50%;bottom:4%;width:70%;height:7%;
+  transform:translateX(-50%);background:rgba(0,0,0,.16);filter:blur(22px);border-radius:50%;
+}
+.bottle{
+  position:absolute;left:12%;right:12%;bottom:10%;height:64%;
+  border-radius:28px 28px 42px 42px;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.38),transparent 12%,rgba(255,255,255,.08) 46%,rgba(0,0,0,.22) 100%),
+    linear-gradient(180deg,#302f2b 0%,#181816 50%,#090908 100%);
+  border:1px solid rgba(0,0,0,.35);
+  box-shadow:inset 9px 0 16px rgba(255,255,255,.07),inset -15px 0 25px rgba(0,0,0,.6),0 40px 60px rgba(0,0,0,.22);
+  transform:perspective(700px) rotateY(var(--rot,0deg));
+}
+.bottle:before{
+  content:"";position:absolute;left:13%;right:13%;top:-13%;height:15%;
+  background:linear-gradient(90deg,#bda66d,#efe1b7 35%,#9c7e3d 75%,#d8c28b);
+  border-radius:5px 5px 2px 2px;border:1px solid #8e7237;
+  box-shadow:0 -7px 0 #161513,0 -11px 12px rgba(0,0,0,.15);
+}
+.bottle:after{
+  content:"";position:absolute;left:20%;right:20%;top:7%;height:5%;
+  border-radius:50%;background:rgba(255,255,255,.08);
+}
+.label{
+  position:absolute;left:13%;right:13%;top:39%;height:27%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);
+  color:#e2cb91;background:rgba(10,10,9,.12)
+}
+.label b{font:400 clamp(18px,3vw,25px)/1 Georgia,serif;letter-spacing:.13em}
+.label span{font-size:7px;letter-spacing:.32em;margin-top:10px}
+.liquid{position:absolute;left:4%;right:4%;bottom:4%;height:30%;border-radius:0 0 36px 36px;background:linear-gradient(#161513,#050505);opacity:.85}
+.info{
+  position:absolute;z-index:8;left:5vw;bottom:9vh;max-width:370px;
+  transition:transform .2s,opacity .2s
+}
+.eyebrow{font-size:9px;letter-spacing:.36em;text-transform:uppercase;color:#777;margin-bottom:16px}
+.info h1{font:400 clamp(54px,8vw,112px)/.84 Georgia,serif;margin:0 0 20px;letter-spacing:-.065em}
+.info p{font-size:11px;line-height:1.8;letter-spacing:.1em;text-transform:uppercase;color:#666;max-width:290px}
+.side{
+  position:absolute;z-index:8;right:5vw;top:50%;transform:translateY(-50%);
+  width:145px;text-align:right;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#777;
+}
+.side strong{display:block;color:#111;font-size:13px;margin-top:8px}
+.chapter{
+  position:absolute;z-index:8;left:5vw;top:12vh;font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:#777;
+}
+.chapter b{color:#111;margin-left:12px}
+.detail{
+  position:absolute;z-index:8;right:5vw;bottom:9vh;text-align:right;
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#777;
+}
+.detail strong{display:block;color:#111;font:400 27px Georgia,serif;letter-spacing:0;margin-top:8px}
+.hint{position:absolute;z-index:9;left:50%;bottom:28px;transform:translateX(-50%);font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:#777;white-space:nowrap}
+.hint:after{content:"";display:block;width:1px;height:35px;background:#777;margin:10px auto 0}
+.section{
+  min-height:100svh;position:relative;padding:18vh 8vw;background:var(--dark);color:#f0eee8;
+  display:flex;align-items:center;overflow:hidden;
+}
+.section.light{background:var(--bg);color:var(--ink)}
+.section-inner{max-width:680px;position:relative;z-index:2}
+.section-kicker{font-size:9px;letter-spacing:.34em;color:var(--gold);text-transform:uppercase;margin-bottom:24px}
+.section h2{font:400 clamp(48px,8vw,110px)/.88 Georgia,serif;letter-spacing:-.06em;margin:0 0 28px}
+.section p{max-width:430px;font-size:13px;line-height:1.9;color:#999}
+.section.light p{color:#666}
+.notes{position:absolute;right:7vw;top:50%;transform:translateY(-50%);font:400 clamp(80px,18vw,240px)/.8 Georgia,serif;color:rgba(255,255,255,.035);white-space:nowrap}
+.section.light .notes{color:rgba(0,0,0,.035)}
+.note-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:32px}
+.pill{border:1px solid rgba(255,255,255,.18);padding:11px 15px;font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+.light .pill{border-color:#c8c5bc}
+.collection{
+  min-height:100svh;padding:13vh 5vw;background:#0c0c0b;color:#eee;
+}
+.collection-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:45px}
+.collection h2{font:400 clamp(50px,8vw,110px)/.85 Georgia,serif;letter-spacing:-.06em;margin:0}
+.collection-head p{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#777}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{min-height:390px;background:#141412;border:1px solid rgba(255,255,255,.08);padding:20px;display:flex;flex-direction:column;justify-content:end;position:relative;overflow:hidden}
+.card-bottle{position:absolute;left:50%;top:45%;width:110px;height:190px;transform:translate(-50%,-50%);border-radius:17px 17px 24px 24px;background:linear-gradient(90deg,#333, #111,#292824);box-shadow:0 25px 45px rgba(0,0,0,.5)}
+.card-bottle:before{content:"";position:absolute;left:28%;right:28%;top:-15%;height:17%;background:#b79b5e;border-radius:3px}
+.card small{font-size:8px;letter-spacing:.25em;color:#777}
+.card h3{font:400 30px Georgia,serif;margin:8px 0 0}
+footer{padding:45px 5vw;background:#080807;color:#777;display:flex;justify-content:space-between;font-size:8px;letter-spacing:.2em;text-transform:uppercase}
+@media(max-width:700px){
+  .nav{height:60px;padding:0 18px}.nav-right{gap:10px;font-size:7px}
+  .side{right:18px;top:22%;width:100px}.detail{right:18px;bottom:18%}
+  .info{left:18px;bottom:11vh}.hero-word{font-size:25vw}
+  .bottle-scene{width:220px;height:430px;top:46%}
+  .orbit{width:145vw;height:145vw}
+  .section{padding:24vh 22px 16vh}.notes{right:-30px;top:28%;font-size:90px}
+  .cards{grid-template-columns:1fr}.card{min-height:330px}
+  .collection{padding:15vh 18px}.collection-head{display:block}.collection-head p{margin-top:20px}
+  footer{display:block;line-height:2.2}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="progress" id="progress"></div>
+<header class="nav">
+  <div class="logo">ZANVIELLE</div>
+  <div class="nav-right"><button id="sound">SOUND OFF</button><button id="menuBtn">MENU</button></div>
+</header>
+<div class="counter"><span id="counter">01</span> / 05</div>
+
+<section class="experience">
+  <div class="pin" id="pin">
+    <div class="grid"></div>
+    <div class="orbit"></div>
+    <div class="ring-cut"></div>
+
+    <div class="hero-word" id="heroWord"><span>ZAN</span><span class="z2">VIELLE</span></div>
+
+    <div class="bottle-scene" id="bottleScene" aria-label="Zanvielle parfüm">
+      <div class="shadow"></div>
+      <div class="bottle" id="bottle">
+        <div class="liquid"></div>
+        <div class="label"><b>ZANVIELLE</b><span>PREMIUM EXTRAIT</span></div>
+      </div>
+    </div>
+
+    <div class="chapter">EXPERIENCE <b id="chapterText">THE SIGNATURE</b></div>
+    <div class="info" id="info">
+      <div class="eyebrow">ZANVIELLE · 001</div>
+      <h1 id="title">Kokunun<br>ötesinde.</h1>
+      <p id="desc">Parfümü sadece görmek değil, deneyimlemek için tasarlanmış yeni nesil Zanvielle deneyimi.</p>
+    </div>
+    <div class="side">COLLECTION<strong id="sideText">SIGNATURE</strong></div>
+    <div class="detail">TYPE<strong id="typeText">EXTRAIT DE PARFUM</strong></div>
+    <div class="hint">SCROLL TO EXPLORE</div>
+  </div>
+</section>
+
+<section class="section light" id="s1">
+  <div class="section-inner">
+    <div class="section-kicker">02 · ÜST NOTALAR</div>
+    <h2>İlk<br>dokunuş.</h2>
+    <p>Bergamot, mandalina ve canlı narenciye akoru. İlk temasın temizliği ve karakteri, şişenin etrafında açılan görsel bir deneyime dönüşür.</p>
+    <div class="note-row"><span class="pill">BERGAMOT</span><span class="pill">MANDARIN</span><span class="pill">CITRUS</span></div>
+  </div>
+  <div class="notes">TOP</div>
+</section>
+
+<section class="section" id="s2">
+  <div class="section-inner">
+    <div class="section-kicker">03 · KALP NOTALARI</div>
+    <h2>Kokunun<br>karakteri.</h2>
+    <p>Beyaz çiçekler, yumuşak pudramsı dokular ve sıcak geçişler. Parfümün kimliği burada görünür hale gelir.</p>
+    <div class="note-row"><span class="pill">WHITE FLORALS</span><span class="pill">POWDER</span><span class="pill">SOFT</span></div>
+  </div>
+  <div class="notes">HEART</div>
+</section>
+
+<section class="section light" id="s3">
+  <div class="section-inner">
+    <div class="section-kicker">04 · ALT NOTALAR</div>
+    <h2>İz<br>bırakır.</h2>
+    <p>Vanilya, sandal ağacı ve amber. Derinleşen yapı, kokunun son dokunuşunu uzun süre taşır.</p>
+    <div class="note-row"><span class="pill">VANILLA</span><span class="pill">SANDALWOOD</span><span class="pill">AMBER</span></div>
+  </div>
+  <div class="notes">BASE</div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="section-kicker">05 · ZANVIELLE DNA</div>
+    <h2>Ultra<br>performans.</h2>
+    <p>Premium Extrait de Parfum. Yoğunluk, karakter ve kalıcılık aynı deneyimde buluşur.</p>
+    <div class="note-row"><span class="pill">EXTRAIT</span><span class="pill">LONG LASTING</span><span class="pill">PREMIUM</span></div>
+  </div>
+  <div class="notes">DNA</div>
+</section>
+
+<section class="collection" id="collection">
+  <div class="collection-head">
+    <h2>Kokunu<br>keşfet.</h2>
+    <p>THE ZANVIELLE COLLECTION</p>
+  </div>
+  <div class="cards">
+    <article class="card"><div class="card-bottle"></div><small>01 · WOMEN</small><h3>Kadın</h3></article>
+    <article class="card"><div class="card-bottle"></div><small>02 · MEN</small><h3>Erkek</h3></article>
+    <article class="card"><div class="card-bottle"></div><small>03 · UNISEX</small><h3>Unisex</h3></article>
+  </div>
+</section>
+<footer><span>ZANVIELLE · PREMIUM EXTRAIT</span><span>INTERACTIVE FRAGRANCE EXPERIENCE</span></footer>
+</div>
+
+<script>
+(() => {
+  const experience=document.querySelector('.experience');
+  const bottleScene=document.getElementById('bottleScene');
+  const bottle=document.getElementById('bottle');
+  const heroWord=document.getElementById('heroWord');
+  const info=document.getElementById('info');
+  const progress=document.getElementById('progress');
+  const counter=document.getElementById('counter');
+  const chapter=document.getElementById('chapterText');
+  const title=document.getElementById('title');
+  const desc=document.getElementById('desc');
+  const side=document.getElementById('sideText');
+  const type=document.getElementById('typeText');
+
+  const scenes=[
+    ['THE SIGNATURE','Kokunun<br>ötesinde.','Parfümü sadece görmek değil, deneyimlemek için tasarlanmış yeni nesil Zanvielle deneyimi.','SIGNATURE','EXTRAIT DE PARFUM'],
+    ['THE NOTES','Üst<br>notalar.','İlk temas: bergamot, mandalina ve canlı narenciye.','TOP NOTES','OPENING'],
+    ['THE HEART','Kokunun<br>karakteri.','Kalp notaları parfümün kimliğini ortaya çıkarır.','HEART','CHARACTER'],
+    ['THE TRAIL','İz<br>bırakır.','Vanilya, sandal ağacı ve amber ile derinleşen final.','BASE NOTES','LONG LASTING'],
+    ['THE DNA','ZANVIELLE<br>DNA.','Premium Extrait de Parfum. Yoğunluk, karakter ve performans.','EXTRAIT','PREMIUM']
+  ];
+
+  let raf=0;
+  function render(){
+    const max=Math.max(1,experience.offsetHeight-innerHeight);
+    const y=Math.min(max,Math.max(0,scrollY));
+    const p=y/max;
+    progress.style.width=(p*100)+'%';
+
+    const scene=Math.min(4,Math.floor(p*5));
+    const local=(p*5)-scene;
+    const s=scenes[scene];
+
+    chapter.textContent=s[0]; title.innerHTML=s[1]; desc.textContent=s[2]; side.textContent=s[3]; type.textContent=s[4];
+    counter.textContent=String(scene+1).padStart(2,'0');
+
+    const moveX = Math.sin(p*Math.PI*5)*Math.min(17,innerWidth*.012);
+    const moveY = -50 + Math.sin(p*Math.PI*4)*3;
+    const scale = 1 + p*.34 + Math.sin(p*Math.PI*5)*.035;
+    const rotate = Math.sin(p*Math.PI*2.5)*7;
+    bottleScene.style.transform=`translate(calc(-50% + ${moveX}px), calc(${moveY}% + ${Math.sin(p*20)*5}px)) scale(${scale})`;
+    bottle.style.setProperty('--rot',rotate+'deg');
+
+    heroWord.style.transform=`translate(calc(-50% + ${-moveX*1.8}px),calc(-50% + ${Math.sin(p*9)*8}px)) scale(${1+p*.12})`;
+    heroWord.style.letterSpacing=(-.08-p*.018)+'em';
+    info.style.transform=`translateY(${Math.sin(p*12)*7}px)`;
+    info.style.opacity=String(.55+Math.min(1,local+.35)*.45);
+
+    raf=0;
+  }
+  function tick(){if(!raf){raf=requestAnimationFrame(()=>{render();raf=0})}}
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  render();
+
+  // Drag the hero bottle for a simple interactive rotation.
+  let dragging=false,lastX=0,dragRot=0;
+  bottleScene.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;bottleScene.classList.add('dragging');bottleScene.setPointerCapture(e.pointerId)});
+  bottleScene.addEventListener('pointermove',e=>{if(!dragging)return;dragRot+=(e.clientX-lastX)*.35;lastX=e.clientX;bottle.style.setProperty('--rot',dragRot+'deg')});
+  bottleScene.addEventListener('pointerup',()=>{dragging=false;bottleScene.classList.remove('dragging')});
+  bottleScene.addEventListener('pointercancel',()=>{dragging=false;bottleScene.classList.remove('dragging')});
+
+  document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('collection').scrollIntoView({behavior:'smooth'}));
+  document.getElementById('sound').addEventListener('click',e=>{
+    e.currentTarget.textContent=e.currentTarget.textContent==='SOUND OFF'?'SOUND ON':'SOUND OFF';
+  });
+})();
+</script>
+</body>
+</html>
